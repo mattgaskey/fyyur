@@ -1,0 +1,38 @@
+services:
+  db:
+    container_name: fyyur-db
+    image: postgres:14.1
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db:/var/lib/postgresql/data
+  app:
+    container_name: fyyur-app
+    build: .
+    environment:
+      FLASK_APP: fyyur.py
+      FLASK_ENV: development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+  admin:
+    container_name: fyyur-admin
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  db:
+  app:
+    
