@@ -26,11 +26,8 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
 # Import our project files
-WORKDIR $APP_PATH
-COPY ./poetry.lock ./pyproject.toml ./
-COPY ./README.md ./
-COPY ./$APP_NAME ./$APP_NAME
-COPY .env .flaskenv config.py app.py error.log ./
+WORKDIR /app
+COPY . .
 
 #
 # Stage: development
@@ -40,7 +37,7 @@ ARG APP_NAME
 ARG APP_PATH
 
 # Install project in editable mode and with development dependencies
-WORKDIR $APP_PATH
+WORKDIR /app
 RUN poetry install
 
 # In development mode we use the default flask webserver
@@ -58,8 +55,8 @@ CMD ["flask", "run"]
 FROM staging as build
 ARG APP_PATH
 
-WORKDIR $APP_PATH
-COPY .env .flaskenv config.py app.py error.log ./
+WORKDIR /app
+COPY . .
 RUN poetry build --format wheel
 RUN poetry export --format requirements.txt --output constraints.txt --without-hashes
 
@@ -83,9 +80,9 @@ ENV \
 RUN apt-get update && apt-get install -y netcat-openbsd
 
 # Get build artifact wheel and install it respecting dependency versions
-WORKDIR $APP_PATH
-COPY --from=build $APP_PATH/dist/*.whl ./
-COPY --from=build $APP_PATH/constraints.txt ./
+WORKDIR /app
+COPY --from=build /app/dist/*.whl ./
+COPY --from=build /app/constraints.txt ./
 RUN pip install ./$APP_NAME*.whl --constraint constraints.txt
 
 # gunicorn port. Naming is consistent with GCP Cloud Run
@@ -105,8 +102,7 @@ ENV \
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
-COPY ./poetry.lock ./pyproject.toml ./
-COPY .env .flaskenv config.py app.py error.log ./
+COPY . .
 
 RUN poetry config virtualenvs.create false && poetry install --no-dev
 
