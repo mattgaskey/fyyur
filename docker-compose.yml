@@ -9,7 +9,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db:/var/lib/postgresql/data
   app:
     container_name: fyyur-app
     build: .

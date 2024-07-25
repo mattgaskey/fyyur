@@ -26,6 +26,8 @@ def create_app(config_class=Config):
   app.register_blueprint(errors_bp)
 
   if not app.debug:
+    logging.basicConfig(level=logging.INFO)
+    app.logger = logging.getLogger(__name__)
     file_handler = FileHandler('error.log')
     file_handler.setFormatter(
         Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
@@ -33,7 +35,6 @@ def create_app(config_class=Config):
     app.logger.setLevel(logging.INFO)
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
-    app.logger.info('errors')
 
   return app
 
