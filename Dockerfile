@@ -1,3 +1,7 @@
+#
+# Adapted from https://github.com/bmaingret/coach-planner/blob/main/docker/Dockerfile
+#
+
 ARG APP_NAME=fyyur
 ARG APP_PATH=/$APP_NAME
 ARG PYTHON_VERSION=3.12
