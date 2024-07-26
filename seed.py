@@ -1,5 +1,5 @@
 from fyyur import create_app, db
-from fyyur.models import State
+from fyyur.models import State, Genre
 
 def seed_states():
   states = [
@@ -62,7 +62,37 @@ def seed_states():
 
   db.session.commit()
 
+def seed_genres():
+  genres = [
+    'Alternative',
+    'Blues',
+    'Classical',
+    'Country',
+    'Electronic',
+    'Folk',
+    'Funk',
+    'Hip-Hop',
+    'Heavy Metal',
+    'Instrumental',
+    'Jazz',
+    'Musical Theatre',
+    'Pop',
+    'Punk',
+    'R&B',
+    'Reggae',
+    'Rock n Roll',
+    'Soul',
+    'Other'
+  ]
+  if not Genre.query.first():
+    for name in genres:
+      new_genre = Genre(name=name)
+      db.session.add(new_genre)
+  
+  db.session.commit()
+
 if __name__ == '__main__':
   app = create_app()
   with app.app_context():
     seed_states()
+    seed_genres()

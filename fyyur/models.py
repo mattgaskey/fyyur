@@ -54,3 +54,12 @@ class City(db.Model):
 
     def __repr__(self) -> str:
       return f'<City {self.name}, {self.state}>'
+
+class Genre(db.Model):
+    __tablename__ = 'Genre'
+
+    id: so.Mapped[int] = so.mapped_column(sa.Integer(), primary_key=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(120))
+
+    def __repr__(self) -> str:
+      return f'<Genre {self.name}>'
