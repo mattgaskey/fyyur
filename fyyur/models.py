@@ -1,7 +1,6 @@
-from typing import Optional
 import sqlalchemy as sa
 import sqlalchemy.orm as so
-from fyyur import db, current_app
+from fyyur import db
 
 venue_genres = sa.Table(
     'venue_genres',

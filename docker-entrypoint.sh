@@ -10,8 +10,7 @@ echo "Database started"
 
 # Run database migrations
 echo "Running database migrations..."
-poetry run flask db init || true  # Ignore if already initialized
-poetry run flask db migrate || true  # Ignore if no changes detected
+
 if poetry run flask db upgrade; then
   echo "Database migrations completed successfully"
 else

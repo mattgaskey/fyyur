@@ -1,11 +1,10 @@
-from flask import Flask, request, current_app
+from flask import Flask
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_moment import Moment
 import logging
 from logging import FileHandler, Formatter
-import os
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -19,11 +18,20 @@ def create_app(config_class=Config):
   migrate.init_app(app, db)
   moment.init_app(app)
 
-  from fyyur.main import bp as main_bp
-  app.register_blueprint(main_bp)
+  from fyyur.artist import bp as artist_bp
+  app.register_blueprint(artist_bp)
 
   from fyyur.errors import bp as errors_bp
   app.register_blueprint(errors_bp)
+
+  from fyyur.main import bp as main_bp
+  app.register_blueprint(main_bp)
+
+  from fyyur.show import bp as show_bp
+  app.register_blueprint(show_bp)
+
+  from fyyur.venue import bp as venue_bp
+  app.register_blueprint(venue_bp)
 
   if not app.debug:
     logging.basicConfig(level=logging.INFO)
