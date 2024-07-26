@@ -1,5 +1,8 @@
-from flask import redirect, url_for, render_template, flash
+from flask import redirect, url_for, render_template, flash, request
+from fyyur import db, current_app
+import sqlalchemy as sa
 from fyyur.main import bp
+from fyyur.models import Venue, Artist, City, State, Genre
 from fyyur.main.forms import VenueForm, ArtistForm, ShowForm
 
 @bp.route('/')
@@ -142,15 +145,48 @@ def create_venue_form():
 
 @bp.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  form = VenueForm(request.form)
+  if form.validate_on_submit():
+      try:
+          city_name = form.city.data
+          state_id = form.state.data
+          city = db.session.scalar(sa.select(City).where(City.name == city_name, City.state_id == state_id))
+          if not city:
+              state = db.session.scalar(sa.select(State).where(State.id == state_id))
+              city = City(name=city_name, state_id=state_id)
+              db.session.add(city)
+              db.session.commit()
+          new_venue = Venue(
+              name=form.name.data,
+              city=city,
+              address=form.address.data,
+              phone=form.phone.data,
+              image_link=form.image_link.data,
+              facebook_link=form.facebook_link.data,
+              website_link=form.website_link.data,
+              seeking_talent=form.seeking_talent.data,
+              seeking_description=form.seeking_description.data
+          )
+          db.session.add(new_venue)
+          db.session.flush()
+          print(form.genres.data)
+          for genre_id in form.genres.data:
+              genre = db.session.scalar(sa.select(Genre).where(Genre.id == int(genre_id)))
+              print(genre)
+              new_venue.add_genre(genre)
+          db.session.commit()
+          flash('Venue ' + request.form['name'] + ' was successfully listed!')
+          current_app.logger.info(f"Venue {new_venue.name} successfully created.")
+      except Exception as e:
+          db.session.rollback()
+          flash(f'An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+          current_app.logger.error(f"Error occurred while creating venue: {e}")
+      finally:
+          db.session.close()
+  else:
+      flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed due to validation errors.')
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+  return redirect(url_for('main.index'))
 
 @bp.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -335,15 +371,46 @@ def create_artist_form():
 
 @bp.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-  # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  form = ArtistForm(request.form)
+  if form.validate_on_submit():
+      try:
+          city_name = form.city.data
+          state_id = form.state.data
+          city = db.session.scalar(sa.select(City).where(City.name == city_name, City.state_id == state_id))
+          if not city:
+              state = db.session.scalar(sa.select(State).where(State.id == state_id))
+              city = City(name=city_name, state_id=state_id)
+              db.session.add(city)
+              db.session.commit()
+          new_artist = Artist(
+              name=form.name.data,
+              city=city,
+              phone=form.phone.data,
+              image_link=form.image_link.data,
+              facebook_link=form.facebook_link.data,
+              website_link=form.website_link.data,
+              seeking_venue=form.seeking_venue.data,
+              seeking_description=form.seeking_description.data
+          )
+          db.session.add(new_artist)
+          db.session.flush()
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+          for genre_id in form.genres.data:
+              genre = db.session.scalar(sa.select(Genre).where(Genre.id == int(genre_id)))
+              new_artist.add_genre(genre)
+          db.session.commit()
+          flash('Artist ' + request.form['name'] + ' was successfully listed!')
+          current_app.logger.info(f"Artist {new_artist.name} successfully created.")
+      except Exception as e:
+          db.session.rollback()
+          flash(f'An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
+          current_app.logger.error(f"Error occurred while creating artist: {e}")
+      finally:
+          db.session.close()
+  else:
+      flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed due to validation errors.')
+
+  return redirect(url_for('main.create_artist_submission'))
 
 
 #  Shows

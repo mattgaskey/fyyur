@@ -38,7 +38,7 @@ class VenueForm(FlaskForm):
         'phone'
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -49,7 +49,7 @@ class VenueForm(FlaskForm):
         'facebook_link', validators=[URL()]
     )
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[URL()]
     )
 
     seeking_talent = BooleanField( 'seeking_talent' )
@@ -60,13 +60,10 @@ class VenueForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(VenueForm, self).__init__(*args, **kwargs)
-        with current_app.app_context():
-            states = db.session.scalars(sa.select(State)).all()
-            self.state.choices = [(state.id, state.id) for state in states]
-            genres = db.session.scalars(sa.select(Genre)).all()
-            self.genres.choices = [(genre.name, genre.name) for genre in genres]
-
-
+        states = db.session.scalars(sa.select(State)).all()
+        self.state.choices = [(state.id, state.id) for state in states]
+        genres = db.session.scalars(sa.select(Genre)).all()
+        self.genres.choices = [(genre.id, genre.name) for genre in genres]
 
 class ArtistForm(FlaskForm):
     name = StringField(
@@ -84,31 +81,11 @@ class ArtistForm(FlaskForm):
         'phone'
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
         'genres', validators=[DataRequired()],
-        choices=[
-            ('Alternative', 'Alternative'),
-            ('Blues', 'Blues'),
-            ('Classical', 'Classical'),
-            ('Country', 'Country'),
-            ('Electronic', 'Electronic'),
-            ('Folk', 'Folk'),
-            ('Funk', 'Funk'),
-            ('Hip-Hop', 'Hip-Hop'),
-            ('Heavy Metal', 'Heavy Metal'),
-            ('Instrumental', 'Instrumental'),
-            ('Jazz', 'Jazz'),
-            ('Musical Theatre', 'Musical Theatre'),
-            ('Pop', 'Pop'),
-            ('Punk', 'Punk'),
-            ('R&B', 'R&B'),
-            ('Reggae', 'Reggae'),
-            ('Rock n Roll', 'Rock n Roll'),
-            ('Soul', 'Soul'),
-            ('Other', 'Other'),
-        ]
+        choices=[]
      )
     facebook_link = StringField(
         # TODO implement enum restriction
@@ -116,7 +93,7 @@ class ArtistForm(FlaskForm):
      )
 
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[URL()]
      )
 
     seeking_venue = BooleanField( 'seeking_venue' )
@@ -130,3 +107,5 @@ class ArtistForm(FlaskForm):
         with current_app.app_context():
             states = db.session.scalars(sa.select(State)).all()
             self.state.choices = [(state.id, state.id) for state in states]
+            genres = db.session.scalars(sa.select(Genre)).all()
+            self.genres.choices = [(genre.id, genre.name) for genre in genres]
