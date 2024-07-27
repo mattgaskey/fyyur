@@ -1,9 +1,9 @@
 from wtforms import StringField, SelectField, SelectMultipleField, BooleanField
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, URL
+from wtforms.validators import DataRequired, URL, ValidationError
 import sqlalchemy as sa
 from fyyur import db
-from fyyur.models import State, Genre
+from fyyur.models import State, Genre, Artist
 
 class ArtistForm(FlaskForm):
     name = StringField(
@@ -44,7 +44,7 @@ class ArtistForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(ArtistForm, self).__init__(*args, **kwargs)
-        states = db.session.scalars(sa.select(State)).all()
+        states = db.session.scalars(sa.select(State).order_by(State.name)).all()
         self.state.choices = [(state.id, state.id) for state in states]
         genres = db.session.scalars(sa.select(Genre)).all()
         self.genres.choices = [(genre.id, genre.name) for genre in genres]

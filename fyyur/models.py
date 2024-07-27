@@ -1,5 +1,7 @@
+from typing import List
 import sqlalchemy as sa
 import sqlalchemy.orm as so
+from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
 from fyyur import db
 
 venue_genres = sa.Table(
@@ -30,22 +32,40 @@ class Venue(db.Model):
     seeking_description: so.Mapped[str] = so.mapped_column(sa.String(500))
 
     city_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('City.id'))
-    city: so.Mapped['City'] = so.relationship('City', back_populates='venues')
-    genres: so.WriteOnlyMapped['Genre'] = so.relationship(
-      secondary=venue_genres,
-      primaryjoin=(venue_genres.c.venue_id == id),
-      foreign_keys=[venue_genres.c.venue_id, venue_genres.c.genre_id])
+    city_ref: so.Mapped['City'] = so.relationship('City', back_populates='venues')
+    genre_list: so.Mapped[List['Genre']] = so.relationship('Genre', secondary=venue_genres, back_populates='venues')
+    genres: AssociationProxy[List[str]] = association_proxy('genre_list', 'name')
+    genre_ids: AssociationProxy[List[int]] = association_proxy('genre_list', 'id')
 
     def __repr__(self) -> str:
       return f'<Venue {self.name}>'
 
     def add_genre(self, genre):
-      if not self.has_genre(genre):   
-        self.genres.add(genre)
+        if not self.has_genre(genre):   
+            self.genre_list.append(genre)
     
     def has_genre(self, genre):
-      query = self.genres.select().where(Genre.id == genre.id)
-      return db.session.scalar(query) is not None
+        return genre in self.genre_list
+    
+    def clear_genres(self):
+      self.genre_list.clear()
+      db.session.commit()
+
+    @property
+    def genres(self):
+        return [genre.name for genre in self.genre_list]
+    
+    @property
+    def genre_ids(self):
+        return [str(genre.id) for genre in self.genre_list]
+    
+    @property
+    def city(self):
+      return self.city_ref.name
+    
+    @property
+    def state(self):
+      return self.city_ref.state_id
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -60,22 +80,40 @@ class Artist(db.Model):
     seeking_description: so.Mapped[str] = so.mapped_column(sa.String(500))
 
     city_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('City.id'))
-    city: so.Mapped['City'] = so.relationship('City', back_populates='artists')
-    genres: so.WriteOnlyMapped['Genre'] = so.relationship(
-      secondary=artist_genres,
-      primaryjoin=(artist_genres.c.artist_id == id),
-      foreign_keys=[artist_genres.c.artist_id, artist_genres.c.genre_id])
+    city_ref: so.Mapped['City'] = so.relationship('City', back_populates='artists')
+    genre_list: so.Mapped[List['Genre']] = so.relationship('Genre', secondary=artist_genres, back_populates='artists')
+    genres: AssociationProxy[List[str]] = association_proxy('genre_list', 'name')
+    genre_ids: AssociationProxy[List[int]] = association_proxy('genre_list', 'id')
 
     def __repr__(self) -> str:
       return f'<Artist {self.name}>'
 
     def add_genre(self, genre):
-      if not self.has_genre(genre):   
-        self.genres.add(genre)
+        if not self.has_genre(genre):   
+            self.genre_list.append(genre)
     
     def has_genre(self, genre):
-      query = self.genres.select().where(Genre.id == genre.id)
-      return db.session.scalar(query) is not None
+        return genre in self.genre_list
+    
+    def clear_genres(self):
+      self.genre_list.clear()
+      db.session.commit()
+
+    @property
+    def genres(self):
+        return [genre.name for genre in self.genre_list]
+    
+    @property
+    def genre_ids(self):
+        return [str(genre.id) for genre in self.genre_list]
+    
+    @property
+    def city(self):
+      return self.city_ref.name
+    
+    @property
+    def state(self):
+      return self.city_ref.state_id
 
 class State(db.Model):
     __tablename__ = 'State'
@@ -97,11 +135,11 @@ class City(db.Model):
     state_id: so.Mapped[str] = so.mapped_column(sa.String(2), sa.ForeignKey('State.id'))
     
     state: so.Mapped['State'] = so.relationship('State', back_populates='cities')
-    artists: so.WriteOnlyMapped['Artist'] = so.relationship('Artist', back_populates='city')
-    venues: so.WriteOnlyMapped['Venue'] = so.relationship('Venue', back_populates='city')
+    artists: so.WriteOnlyMapped['Artist'] = so.relationship('Artist', back_populates='city_ref')
+    venues: so.WriteOnlyMapped['Venue'] = so.relationship('Venue', back_populates='city_ref')
 
     def __repr__(self) -> str:
-      return f'<City {self.name}, {self.state}>'
+      return f'<City {self.name}, {self.state_id}>'
 
 class Genre(db.Model):
     __tablename__ = 'Genre'

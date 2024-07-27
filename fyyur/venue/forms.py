@@ -45,7 +45,7 @@ class VenueForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(VenueForm, self).__init__(*args, **kwargs)
-        states = db.session.scalars(sa.select(State)).all()
+        states = db.session.scalars(sa.select(State).order_by(State.name)).all()
         self.state.choices = [(state.id, state.id) for state in states]
         genres = db.session.scalars(sa.select(Genre)).all()
         self.genres.choices = [(genre.id, genre.name) for genre in genres]

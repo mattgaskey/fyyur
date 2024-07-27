@@ -7,29 +7,18 @@ from fyyur.models import Venue, City, State, Genre
 
 @bp.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  query = sa.select(City).order_by(City.state_id, City.name)
+  locations = db.session.scalars(query).all()
+  data = []
+  for location in locations:
+    if db.session.scalar(sa.select(Venue).where(Venue.city_id == location.id)):
+      data.append({
+          "city": location.name,
+          "state": location.state_id,
+          "venues": db.session.scalars(
+             sa.select(Venue).where(Venue.city_id == location.id).order_by(Venue.name)).all()
+      })
+ 
   return render_template('pages/venues.html', areas=data);
 
 @bp.route('/venues/search', methods=['POST'])
@@ -146,13 +135,12 @@ def create_venue_submission():
           state_id = form.state.data
           city = db.session.scalar(sa.select(City).where(City.name == city_name, City.state_id == state_id))
           if not city:
-              state = db.session.scalar(sa.select(State).where(State.id == state_id))
               city = City(name=city_name, state_id=state_id)
               db.session.add(city)
               db.session.commit()
           new_venue = Venue(
               name=form.name.data,
-              city=city,
+              city_ref=city,
               address=form.address.data,
               phone=form.phone.data,
               image_link=form.image_link.data,
