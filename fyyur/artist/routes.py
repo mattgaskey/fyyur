@@ -216,3 +216,20 @@ def create_artist_submission():
       flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed due to validation errors.')
 
   return redirect(url_for('artist.show_artist', artist_id=artist_id))
+
+@bp.route('/artists/<artist_id>/delete', methods=['POST'])
+def delete_artist(artist_id):
+  if request.form.get('_method') == 'DELETE':
+    artist = db.session.scalar(sa.select(Artist).where(Artist.id == artist_id))
+    try:
+      db.session.delete(artist)
+      db.session.commit()
+      flash('Artist ' + artist.name + ' was successfully deleted!')
+      current_app.logger.info(f"Artist {artist.name} successfully deleted.")
+    except Exception as e:
+      db.session.rollback()
+      flash('An error occurred. Artist ' + artist.name + ' could not be deleted.')
+      current_app.logger.error(f"Error occurred while deleting artist: {e}")
+    finally:
+      db.session.close()
+    return redirect(url_for('main.index'))

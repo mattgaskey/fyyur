@@ -231,11 +231,19 @@ def edit_venue_submission(venue_id):
         
   return redirect(url_for('venue.show_venue', venue_id=venue_id))
 
-@bp.route('/venues/<venue_id>', methods=['DELETE'])
+@bp.route('/venues/<venue_id>/delete', methods=['POST'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  if request.form.get('_method') == 'DELETE':
+    venue = db.session.scalar(sa.select(Venue).where(Venue.id == venue_id))
+    try:
+      db.session.delete(venue)
+      db.session.commit()
+      flash('Venue ' + venue.name + ' was successfully deleted!')
+      current_app.logger.info(f"Venue {venue.name} successfully deleted.")
+    except Exception as e:
+      db.session.rollback()
+      flash('An error occurred. Venue ' + venue.name + ' could not be deleted.')
+      current_app.logger.error(f"Error occurred while deleting venue: {e}")
+    finally:
+      db.session.close()
+    return redirect(url_for('main.index'))

@@ -75,7 +75,16 @@
 	</div>
 </section>
 
-<a href="/venues/{{ venue.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
-
+<ul class="list-inline">
+  <li class="list-inline-item">
+    <a href="/venues/{{ venue.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
+  </li>
+  <li class="list-inline-item">
+    <form action="{{ url_for('venue.delete_venue', venue_id=venue.id) }}" method="POST" class="d-inline">
+      <input type="hidden" name="_method" value="DELETE">
+      <button type="submit" class="btn btn-primary btn-lg">Delete</button>
+    </form>
+  </li>
+</ul>
 {% endblock %}
 
