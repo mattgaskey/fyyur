@@ -211,7 +211,8 @@ def create_artist_submission():
           current_app.logger.error(f"Error occurred while creating artist: {e}")
       finally:
           db.session.close()
+          artist_id = new_artist.id
   else:
       flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed due to validation errors.')
 
-  return redirect(url_for('artist.create_artist_submission'))
+  return redirect(url_for('artist.show_artist', artist_id=artist_id))

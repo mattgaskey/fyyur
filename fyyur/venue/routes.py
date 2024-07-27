@@ -165,10 +165,11 @@ def create_venue_submission():
           current_app.logger.error(f"Error occurred while creating venue: {e}")
       finally:
           db.session.close()
+          venue_id = new_venue.id
   else:
       flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed due to validation errors.')
 
-  return redirect(url_for('main.index'))
+  return redirect(url_for('venue.show_venue', venue_id=venue_id))
 
 @bp.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
@@ -217,19 +218,18 @@ def edit_venue_submission(venue_id):
           genre = db.session.scalar(sa.select(Genre).where(Genre.id == int(genre_id)))
           venue.add_genre(genre)
       db.session.commit()
-      flash('Venue ' + request.form['name'] + ' was successfully listed!')
-      current_app.logger.info(f"Venue {venue.name} successfully created.")
+      flash('Venue ' + request.form['name'] + ' was successfully updated!')
+      current_app.logger.info(f"Venue {venue.name} successfully updated.")
     except Exception as e:
       db.session.rollback()
-      flash(f'An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+      flash(f'An error occurred. Venue ' + request.form['name'] + ' could not be updated.')
       current_app.logger.error(f"Error occurred while creating venue: {e}")
     finally:
       db.session.close()
   else:
-      flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed due to validation errors.')
+      flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated due to validation errors.')
         
-
-  return redirect(url_for('venue.show_venue', form=form, venue_id=venue_id))
+  return redirect(url_for('venue.show_venue', venue_id=venue_id))
 
 @bp.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
