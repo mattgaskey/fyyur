@@ -113,7 +113,7 @@ def show_artist(artist_id):
 @bp.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist = db.session.scalar(sa.select(Artist).where((Artist.id == artist_id)))
+  artist = db.session.scalar(sa.select(Artist).where(Artist.id == artist_id))
   form.name.data = artist.name
   form.city.data = artist.city
   form.state.data = artist.state
