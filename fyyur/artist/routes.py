@@ -36,6 +36,10 @@ def search_artists():
 def show_artist(artist_id):
   query = sa.select(Artist).where(Artist.id == artist_id)
   artist = db.session.scalar(query)
+  if not artist:
+    flash('Artist not found.')
+    return redirect(url_for('main.index'))
+  artist = artist.serialize()
   # data1={
   #   "id": 4,
   #   "name": "Guns N Petals",
