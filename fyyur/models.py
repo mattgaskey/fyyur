@@ -4,6 +4,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm as so
 from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
 from fyyur import db
+from fyyur.search import add_to_index, remove_from_index, query_index
 
 venue_genres = sa.Table(
     'venue_genres',
@@ -19,11 +20,58 @@ artist_genres = sa.Table(
     db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
 )
 
-class Venue(db.Model):
+class SearchableMixin(object):
+  @classmethod
+  def get_searchable_fields(cls):
+    return getattr(cls, '__searchable__', [])
+  
+  @classmethod
+  def search(cls, expression):
+    ids, total = query_index(cls.__tablename__.lower(), expression)
+    if total == 0:
+      return {}, 0
+    when = []
+    for i in range(len(ids)):
+      when.append((ids[i], i))
+    query = sa.select(cls).where(cls.id.in_(ids)).order_by(
+      db.case(*when, value=cls.id))
+    return db.session.scalars(query), total
+  
+  @classmethod
+  def before_commit(cls, session):
+    session._changes = {
+      'add': list(session.new),
+      'update': list(session.dirty),
+      'delete': list(session.deleted)
+    }
+
+  @classmethod
+  def after_commit(cls, session):
+    for obj in session._changes['add']:
+      if isinstance(obj, SearchableMixin):
+        add_to_index(obj.__tablename__, obj)
+    for obj in session._changes['update']:
+      if isinstance(obj, SearchableMixin):
+        add_to_index(obj.__tablename__, obj)
+    for obj in session._changes['delete']:
+      if isinstance(obj, SearchableMixin):
+        remove_from_index(obj.__tablename__, obj)
+    session._changes = None
+
+  @classmethod
+  def reindex(cls):
+    for obj in db.session.scalars(sa.select(cls)):
+      add_to_index(cls.__tablename__, obj)
+  
+db.event.listen(db.session, 'before_commit', SearchableMixin.before_commit)
+db.event.listen(db.session, 'after_commit', SearchableMixin.after_commit)
+
+class Venue(SearchableMixin, db.Model):
     __tablename__ = 'Venue'
+    __searchable__ = ['name']
 
     id: so.Mapped[int] = so.mapped_column(sa.Integer(), primary_key=True)
-    name: so.Mapped[str] = so.mapped_column(sa.String(120))
+    name: so.Mapped[str] = so.mapped_column(sa.String(120), index=True)
     address: so.Mapped[str] = so.mapped_column(sa.String(120))
     phone: so.Mapped[str] = so.mapped_column(sa.String(120))
     image_link: so.Mapped[str] = so.mapped_column(sa.String(500))
@@ -31,8 +79,8 @@ class Venue(db.Model):
     website_link: so.Mapped[str] = so.mapped_column(sa.String(120))
     seeking_talent: so.Mapped[bool] = so.mapped_column(sa.Boolean())
     seeking_description: so.Mapped[str] = so.mapped_column(sa.String(500))
-
     city_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('City.id'))
+
     city_ref: so.Mapped['City'] = so.relationship('City', back_populates='venues')
     genre_list: so.Mapped[List['Genre']] = so.relationship('Genre', secondary=venue_genres, back_populates='venues')
     genres: AssociationProxy[List[str]] = association_proxy('genre_list', 'name')
@@ -111,19 +159,20 @@ class Venue(db.Model):
         "upcoming_shows_count": self.get_upcoming_shows_count()
     }
 
-class Artist(db.Model):
+class Artist(SearchableMixin, db.Model):
     __tablename__ = 'Artist'
+    __searchable__ = ['name']
 
     id: so.Mapped[int] = so.mapped_column(sa.Integer(), primary_key=True)
-    name: so.Mapped[str] = so.mapped_column(sa.String())
+    name: so.Mapped[str] = so.mapped_column(sa.String(), index=True)
     phone: so.Mapped[str] = so.mapped_column(sa.String(120))
     image_link: so.Mapped[str] = so.mapped_column(sa.String(500))
     facebook_link: so.Mapped[str] = so.mapped_column(sa.String(120))
     website_link: so.Mapped[str] = so.mapped_column(sa.String(120))
     seeking_venue: so.Mapped[bool] = so.mapped_column(sa.Boolean())
     seeking_description: so.Mapped[str] = so.mapped_column(sa.String(500))
-
     city_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('City.id'))
+    
     city_ref: so.Mapped['City'] = so.relationship('City', back_populates='artists')
     genre_list: so.Mapped[List['Genre']] = so.relationship('Genre', secondary=artist_genres, back_populates='artists')
     genres: AssociationProxy[List[str]] = association_proxy('genre_list', 'name')
@@ -207,8 +256,8 @@ class Show(db.Model):
     id: so.Mapped[int] = so.mapped_column(sa.Integer(), primary_key=True)
     start_time: so.Mapped[sa.DateTime] = so.mapped_column(sa.DateTime, nullable=False)
 
-    artist_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('Artist.id'))
-    venue_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('Venue.id'))
+    artist_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('Artist.id'), index=True)
+    venue_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('Venue.id'), index=True)
 
     artist: so.Mapped['Artist'] = so.relationship('Artist', back_populates='shows')
     venue: so.Mapped['Venue'] = so.relationship('Venue', back_populates='shows')

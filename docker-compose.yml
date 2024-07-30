@@ -25,6 +25,7 @@ services:
       - .:/app
     depends_on:
       - db
+      - search
   admin:
     container_name: fyyur-admin
     image: adminer
@@ -32,8 +33,25 @@ services:
       - "8080:8080"
     depends_on:
       - db
+  search:
+    container_name: fyyur-search
+    image: elasticsearch:8.14.0
+    environment:
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    depends_on:
+      - db
+    volumes:
+      - search:/usr/share/elasticsearch/data
 
 volumes:
   db:
   app:
+  search:
     

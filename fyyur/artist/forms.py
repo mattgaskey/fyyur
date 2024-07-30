@@ -1,3 +1,4 @@
+from flask import request
 from wtforms import StringField, SelectField, SelectMultipleField, BooleanField
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, URL, ValidationError
@@ -48,3 +49,15 @@ class ArtistForm(FlaskForm):
         self.state.choices = [(state.id, state.id) for state in states]
         genres = db.session.scalars(sa.select(Genre)).all()
         self.genres.choices = [(genre.id, genre.name) for genre in genres]
+
+class ArtistSearchForm(FlaskForm):
+    search_term = StringField(
+        'search_term', validators=[DataRequired()]
+    )
+
+    def __init__(self, *args, **kwargs):
+      if 'formdata' not in kwargs:
+        kwargs['formdata'] = request.args
+      if 'meta' not in kwargs:
+        kwargs['meta'] = {'csrf': False}
+      super(ArtistSearchForm, self).__init__(*args, **kwargs)

@@ -73,10 +73,10 @@
 </section>
 
 <ul class="list-inline">
-  <li class="list-inline-item">
+  <li>
     <a href="/artists/{{ artist.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
   </li>
-  <li class="list-inline-item">
+  <li>
     <form action="{{ url_for('artist.delete_artist', artist_id=artist.id) }}" method="POST" class="d-inline">
       <input type="hidden" name="_method" value="DELETE">
       <button type="submit" class="btn btn-primary btn-lg">Delete</button>

@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_moment import Moment
 import logging
 from logging import FileHandler, Formatter
+from elasticsearch import Elasticsearch
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -17,6 +18,8 @@ def create_app(config_class=Config):
   db.init_app(app)
   migrate.init_app(app, db)
   moment.init_app(app)
+
+  app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) if app.config['ELASTICSEARCH_URL'] else None
 
   from fyyur.artist import bp as artist_bp
   app.register_blueprint(artist_bp)
