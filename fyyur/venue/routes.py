@@ -2,12 +2,13 @@ from flask import render_template, request, flash, redirect, url_for, current_ap
 import sqlalchemy as sa
 from fyyur import db
 from fyyur.venue import bp
-from fyyur.venue.forms import VenueForm
+from fyyur.venue.forms import VenueForm, VenueSearchForm
 from fyyur.models import Venue, City, Genre
 
 
 @bp.route('/venues')
 def venues():
+  form = VenueSearchForm()
   query = sa.select(City).order_by(City.state_id, City.name)
   locations = db.session.scalars(query).all()
   data = []
@@ -20,22 +21,30 @@ def venues():
              sa.select(Venue).where(Venue.city_id == location.id).order_by(Venue.name)).all()
       })
  
-  return render_template('pages/venues.html', areas=data);
+  return render_template(
+    'pages/venues.html', 
+    areas=data,
+    form=form,
+    placeholder='Search for a Venue',
+    endpoint='/venues/search')
 
-@bp.route('/venues/search', methods=['POST'])
+@bp.route('/venues/search', methods=['GET'])
 def search_venues():
-  # TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  form = VenueSearchForm()
+  if not form.validate():
+     return redirect(url_for('venue.venues'))
+  venues, total = Venue.search(form.search_term.data)
   response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+    "count": total,
+    "data": venues
   }
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+  return render_template(
+    'pages/search_venues.html', 
+    results=response, 
+    search_term=form.search_term.data,
+    form=form,
+    placeholder='Search for a Venue',
+    endpoint='/venues/search')
 
 @bp.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -93,6 +102,7 @@ def create_venue_submission():
           flash(f'An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
           current_app.logger.error(f"Error occurred while creating venue: {e}")
       finally:
+          
           db.session.close()
           venue_id = new_venue.id
   else:
