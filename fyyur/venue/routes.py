@@ -102,13 +102,16 @@ def create_venue_submission():
           flash(f'An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
           current_app.logger.error(f"Error occurred while creating venue: {e}")
       finally:
-          
           db.session.close()
           venue_id = new_venue.id
   else:
       flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed due to validation errors.')
+      return render_template('forms/new_venue.html', form=form)
 
-  return redirect(url_for('venue.show_venue', venue_id=venue_id))
+  if venue_id:
+      return redirect(url_for('venue.show_venue', venue_id=venue_id))
+  else:
+      return redirect(url_for('main.index'))
 
 @bp.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
@@ -131,6 +134,7 @@ def edit_venue(venue_id):
 @bp.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   form = VenueForm()
+  venue = db.session.scalar(sa.select(Venue).where(Venue.id == venue_id))
   if form.validate_on_submit():
     try:
       city_name = form.city.data
@@ -140,7 +144,6 @@ def edit_venue_submission(venue_id):
           city = City(name=city_name, state_id=state_id)
           db.session.add(city)
           db.session.commit()
-      venue = db.session.scalar(sa.select(Venue).where(Venue.id == venue_id))
       
       venue.name=form.name.data
       venue.city_ref=city
@@ -167,6 +170,7 @@ def edit_venue_submission(venue_id):
       db.session.close()
   else:
       flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated due to validation errors.')
+      return render_template('forms/edit_venue.html', form=form, venue=venue)
         
   return redirect(url_for('venue.show_venue', venue_id=venue_id))
 

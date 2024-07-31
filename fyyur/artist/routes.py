@@ -72,6 +72,8 @@ def edit_artist(artist_id):
 @bp.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   form = ArtistForm()
+  artist = db.session.scalar(sa.select(Artist).where(Artist.id == artist_id))
+
   if form.validate_on_submit():
       try:
           city_name = form.city.data
@@ -81,7 +83,6 @@ def edit_artist_submission(artist_id):
               city = City(name=city_name, state_id=state_id)
               db.session.add(city)
               db.session.commit()
-          artist = db.session.scalar(sa.select(Artist).where(Artist.id == artist_id))
           artist.city_ref = city
           artist.name = form.name.data
           artist.phone = form.phone.data
@@ -105,9 +106,8 @@ def edit_artist_submission(artist_id):
       finally:
           db.session.close()
   else:
-      flash(request.form)
-      flash(form.errors)
       flash('An error occurred. Artist ' + request.form['name'] + ' could not be updated due to validation errors.')
+      return render_template('forms/edit_artist.html', form=form, artist=artist)
 
   return redirect(url_for('artist.show_artist', artist_id=artist_id))
 
@@ -156,8 +156,11 @@ def create_artist_submission():
           artist_id = new_artist.id
   else:
       flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed due to validation errors.')
-
-  return redirect(url_for('artist.show_artist', artist_id=artist_id))
+      return render_template('forms/new_artist.html', form=form)
+  if artist_id:
+    return redirect(url_for('artist.show_artist', artist_id=artist_id))
+  else:
+    return redirect(url_for('main.index'))
 
 @bp.route('/artists/<artist_id>/delete', methods=['POST'])
 def delete_artist(artist_id):

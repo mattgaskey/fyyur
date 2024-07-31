@@ -45,6 +45,5 @@ def create_show_submission():
     finally:
       db.session.close()
   else:
-    flash(form.errors)
     flash('An error occurred. Show could not be updated due to validation errors.')
   return redirect(url_for('show.shows'))

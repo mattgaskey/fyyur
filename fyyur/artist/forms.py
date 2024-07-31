@@ -1,10 +1,11 @@
-from flask import request
+from flask import request, flash
 from wtforms import StringField, SelectField, SelectMultipleField, BooleanField
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, URL, ValidationError
+import phonenumbers, re
 import sqlalchemy as sa
 from fyyur import db
-from fyyur.models import State, Genre, Artist
+from fyyur.models import State, Genre
 
 class ArtistForm(FlaskForm):
     name = StringField(
@@ -18,18 +19,17 @@ class ArtistForm(FlaskForm):
         choices=[]
     )
     phone = StringField(
-        # TODO implement validation logic for phone 
         'phone'
     )
     image_link = StringField(
         'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
-        'genres', validators=[DataRequired()],
+        'genres', 
+        validators=[DataRequired()],
         choices=[]
      )
     facebook_link = StringField(
-        # TODO implement enum restriction
         'facebook_link', validators=[URL()]
      )
 
@@ -49,6 +49,20 @@ class ArtistForm(FlaskForm):
         self.state.choices = [(state.id, state.id) for state in states]
         genres = db.session.scalars(sa.select(Genre)).all()
         self.genres.choices = [(genre.id, genre.name) for genre in genres]
+    
+    def validate_phone(form, field):
+        phone_number = re.sub(r'\D', '', field.data)
+
+        if len(phone_number) > 10:
+            raise ValidationError('Invalid phone number. Please use a 10-digit US format.')
+        try:
+            input_number = phonenumbers.parse(phone_number)
+            if not (phonenumbers.is_valid_number(input_number)):
+                raise ValidationError('Invalid phone number. Please use a 10-digit US format.')
+        except:
+            input_number = phonenumbers.parse('+1'+phone_number)
+            if not (phonenumbers.is_valid_number(input_number)):
+                raise ValidationError('Invalid phone number. Please use a 10-digit US format.')
 
 class ArtistSearchForm(FlaskForm):
     search_term = StringField(

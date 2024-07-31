@@ -1,8 +1,9 @@
 from flask import request
 from wtforms import StringField, SelectField, SelectMultipleField, BooleanField
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, URL
+from wtforms.validators import DataRequired, URL, ValidationError
 import sqlalchemy as sa
+import phonenumbers, re
 from fyyur import db
 from fyyur.models import State, Genre
 
@@ -14,7 +15,8 @@ class VenueForm(FlaskForm):
         'city', validators=[DataRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', 
+        validators=[DataRequired()],
         choices=[]
     )
     address = StringField(
@@ -27,8 +29,8 @@ class VenueForm(FlaskForm):
         'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
-        # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
+        'genres', 
+        validators=[DataRequired()],
         choices=[]
     )
     facebook_link = StringField(
@@ -50,6 +52,20 @@ class VenueForm(FlaskForm):
         self.state.choices = [(state.id, state.id) for state in states]
         genres = db.session.scalars(sa.select(Genre)).all()
         self.genres.choices = [(genre.id, genre.name) for genre in genres]
+
+    def validate_phone(form, field):
+        phone_number = re.sub(r'\D', '', field.data)
+
+        if len(phone_number) > 10:
+            raise ValidationError('Invalid phone number. Please use a 10-digit US format.')
+        try:
+            input_number = phonenumbers.parse(phone_number)
+            if not (phonenumbers.is_valid_number(input_number)):
+                raise ValidationError('Invalid phone number. Please use a 10-digit US format.')
+        except:
+            input_number = phonenumbers.parse('+1'+phone_number)
+            if not (phonenumbers.is_valid_number(input_number)):
+                raise ValidationError('Invalid phone number. Please use a 10-digit US format.')
 
 class VenueSearchForm(FlaskForm):
     search_term = StringField(
