@@ -118,10 +118,10 @@ class Venue(SearchableMixin, db.Model):
       db.session.commit()
     
     def get_past_shows(self):
-      return db.session.query(Show).filter(Show.venue_id == self.id, Show.start_time < sa.func.now()).all()
+      return list(db.session.scalars(sa.select(Show).filter(Show.venue_id == self.id, Show.start_time < sa.func.now())))
 
     def get_upcoming_shows(self):
-      return db.session.query(Show).filter(Show.venue_id == self.id, Show.start_time >= sa.func.now()).all()
+      return list(db.session.scalars(sa.select(Show).filter(Show.venue_id == self.id, Show.start_time >= sa.func.now())))
 
     def get_past_shows_count(self):
       return len(self.get_past_shows())
@@ -210,10 +210,10 @@ class Artist(SearchableMixin, db.Model):
       db.session.commit()
 
     def get_past_shows(self):
-      return db.session.query(Show).filter(Show.artist_id == self.id, Show.start_time < sa.func.now()).all()
+      return list(db.session.scalars(sa.select(Show).filter(Show.artist_id == self.id, Show.start_time < sa.func.now())))
 
     def get_upcoming_shows(self):
-      return db.session.query(Show).filter(Show.artist_id == self.id, Show.start_time >= sa.func.now()).all()
+      return list(db.session.scalars(sa.select(Show).filter(Show.artist_id == self.id, Show.start_time >= sa.func.now())))
 
     def get_past_shows_count(self):
       return len(self.get_past_shows())
