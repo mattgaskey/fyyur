@@ -88,6 +88,38 @@
           <span class="help-block">{{ error }}</span>
         {% endfor %}
       </div>
+
+      <div class="form-group{% if form.not_before_date.errors %} has-error{% endif %}">
+        <label for="not_before_date">Available From</label>
+        {{ form.not_before_date(class_='form-control', type='date', placeholder='yyyy-mm-dd', autofocus=True) }}
+        {% for error in form.not_before_date.errors %}
+          <span class="help-block">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="form-group{% if form.not_after_date.errors %} has-error{% endif %}">
+        <label for="not_after_date">Available Until</label>
+        {{ form.not_after_date(class_='form-control', type='date', placeholder='yyyy-mm-dd', autofocus=True) }}
+        {% for error in form.not_after_date.errors %}
+          <span class="help-block">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="form-group{% if form.not_before_time.errors %} has-error{% endif %}">
+        <label for="not_before_time">Only Schedule Shows After</label>
+        {{ form.not_before_time(class_='form-control', type='time', placeholder='hh:mm', autofocus=True) }}
+        {% for error in form.not_before_time.errors %}
+          <span class="help-block">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="form-group{% if form.not_after_time.errors %} has-error{% endif %}">
+        <label for="not_after_time">Only Schedule Shows Before</label>
+        {{ form.not_after_time(class_='form-control', type='time', placeholder='hh:mm', autofocus=True) }}
+        {% for error in form.not_after_time.errors %}
+          <span class="help-block">{{ error }}</span>
+        {% endfor %}
+      </div>
       
       <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
     </form>

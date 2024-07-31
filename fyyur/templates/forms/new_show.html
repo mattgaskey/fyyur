@@ -24,7 +24,7 @@
       
       <div class="form-group{% if form.start_time.errors %} has-error{% endif %}">
         <label for="start_time">Start Time</label>
-        {{ form.start_time(class_='form-control datepicker', placeholder='YYYY-MM-DD HH:MM', autofocus=True) }}
+        {{ form.start_time(class_='form-control datepicker', autofocus=True) }}
         {% for error in form.start_time.errors %}
           <span class="help-block">{{ error }}</span>
         {% endfor %}

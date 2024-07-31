@@ -20,8 +20,9 @@ class ShowForm(FlaskForm):
     )
     start_time = DateTimeLocalField(
         'start_time',
+        format='%Y-%m-%dT%H:%M',
         validators=[DataRequired()],
-        default=datetime.now(timezone.utc)
+        default=datetime.now()
     )
 
     def __init__(self, *args, **kwargs):

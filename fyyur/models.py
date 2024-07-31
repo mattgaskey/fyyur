@@ -1,5 +1,5 @@
 from typing import List
-from datetime import timezone
+from datetime import timezone, datetime
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
@@ -172,6 +172,10 @@ class Artist(SearchableMixin, db.Model):
     seeking_venue: so.Mapped[bool] = so.mapped_column(sa.Boolean())
     seeking_description: so.Mapped[str] = so.mapped_column(sa.String(500))
     city_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('City.id'))
+    available_start_date: so.Mapped[sa.Date] = so.mapped_column(sa.Date, nullable=True)
+    available_end_date: so.Mapped[sa.Date] = so.mapped_column(sa.Date, nullable=True)
+    available_start_time: so.Mapped[sa.Time] = so.mapped_column(sa.Time, nullable=True)
+    available_end_time: so.Mapped[sa.Time] = so.mapped_column(sa.Time, nullable=True)
     
     city_ref: so.Mapped['City'] = so.relationship('City', back_populates='artists')
     genre_list: so.Mapped[List['Genre']] = so.relationship('Genre', secondary=artist_genres, back_populates='artists')
@@ -222,6 +226,12 @@ class Artist(SearchableMixin, db.Model):
       return len(self.get_upcoming_shows())
 
     def serialize(self):
+      def format_date(date):
+        return date.isoformat() if date else None
+
+      def format_time(time):
+        return datetime.strptime(str(time), '%H:%M:%S').strftime('%I:%M %p') if time else None
+    
       return {
         "id": self.id,
         "name": self.name,
@@ -247,7 +257,11 @@ class Artist(SearchableMixin, db.Model):
             "start_time": show.start_time.astimezone(timezone.utc).isoformat()
         } for show in self.get_upcoming_shows()],
         "past_shows_count": self.get_past_shows_count(),
-        "upcoming_shows_count": self.get_upcoming_shows_count()
+        "upcoming_shows_count": self.get_upcoming_shows_count(),
+        "available_start_date": format_date(self.available_start_date),
+        "available_end_date": format_date(self.available_end_date),
+        "available_start_time": format_time(self.available_start_time),
+        "available_end_time": format_time(self.available_end_time)
     }
 
 class Show(db.Model):

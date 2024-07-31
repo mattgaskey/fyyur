@@ -38,6 +38,16 @@
 			<i class="fas fa-moon"></i> Not currently seeking performance venues
 		</p>
 		{% endif %}
+    {% if artist.available_start_date or artist.available_end_date %}
+    <p>
+      <i class="fas fa-calendar-alt"></i> Available {% if artist.available_start_date %}from {{ moment(artist.available_start_date).format('LL') }}{% endif %} {% if artist.available_end_date %}until {{ moment(artist.available_end_date).format('LL') }}{% endif %}
+    </p>
+    {% endif %}
+    {% if artist.available_start_time or artist.available_end_time %}
+    <p>
+      <i class="fas fa-clock"></i> Available {% if artist.available_start_time %}from {{ artist.available_start_time }}{% endif %} {% if artist.available_end_time %}until {{ artist.available_end_time }}{% endif %}
+    </p>
+    {% endif %}
 	</div>
 	<div class="col-sm-6">
 		<img src="{{ artist.image_link }}" alt="Artist Image" />

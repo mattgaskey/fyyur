@@ -66,6 +66,10 @@ def edit_artist(artist_id):
   form.seeking_venue.data = artist.seeking_venue
   form.seeking_description.data = artist.seeking_description
   form.genres.data = artist.genre_ids
+  form.not_before_date.data = artist.available_start_date
+  form.not_after_date.data = artist.available_end_date
+  form.not_before_time.data = artist.available_start_time
+  form.not_after_time.data = artist.available_end_time
 
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -91,6 +95,10 @@ def edit_artist_submission(artist_id):
           artist.website_link = form.website_link.data
           artist.seeking_venue = form.seeking_venue.data
           artist.seeking_description = form.seeking_description.data
+          artist.available_start_date = form.not_before_date.data
+          artist.available_end_date = form.not_after_date.data
+          artist.available_start_time = form.not_before_time.data
+          artist.available_end_time = form.not_after_time.data
           artist.clear_genres()
 
           for genre_id in form.genres.data:
@@ -136,7 +144,11 @@ def create_artist_submission():
               facebook_link=form.facebook_link.data,
               website_link=form.website_link.data,
               seeking_venue=form.seeking_venue.data,
-              seeking_description=form.seeking_description.data
+              seeking_description=form.seeking_description.data,
+              available_start_date=form.not_before_date.data,
+              available_end_date=form.not_after_date.data,
+              available_start_time=form.not_before_time.data,
+              available_end_time=form.not_after_time.data
           )
           db.session.add(new_artist)
           db.session.flush()

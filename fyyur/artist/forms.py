@@ -1,7 +1,7 @@
 from flask import request, flash
-from wtforms import StringField, SelectField, SelectMultipleField, BooleanField
+from wtforms import StringField, SelectField, SelectMultipleField, BooleanField, DateField, TimeField
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired, URL, ValidationError
+from wtforms.validators import DataRequired, URL, ValidationError, Optional
 import phonenumbers, re
 import sqlalchemy as sa
 from fyyur import db
@@ -25,10 +25,10 @@ class ArtistForm(FlaskForm):
         'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
-        'genres', 
-        validators=[DataRequired()],
-        choices=[]
-     )
+      'genres', 
+      validators=[DataRequired()],
+      choices=[]
+    )
     facebook_link = StringField(
         'facebook_link', validators=[URL()]
      )
@@ -37,10 +37,24 @@ class ArtistForm(FlaskForm):
         'website_link', validators=[URL()]
      )
 
-    seeking_venue = BooleanField( 'seeking_venue' )
+    seeking_venue = BooleanField( 
+        'seeking_venue', validators=[Optional()] 
+    )
 
     seeking_description = StringField(
             'seeking_description'
+    )
+    not_before_date = DateField(
+        'not_before_date', validators=[Optional()]
+    )
+    not_after_date = DateField(
+        'not_after_date', validators=[Optional()]
+    )
+    not_before_time = TimeField(
+        'not_before_time', validators=[Optional()]
+    )
+    not_after_time = TimeField(
+        'not_after_time', validators=[Optional()]
     )
 
     def __init__(self, *args, **kwargs):
