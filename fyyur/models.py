@@ -147,13 +147,13 @@ class Venue(SearchableMixin, db.Model):
             "artist_id": show.artist.id,
             "artist_name": show.artist.name,
             "artist_image_link": show.artist.image_link,
-            "start_time": show.start_time.astimezone(timezone.utc).isoformat()
+            "start_time": show.start_time.isoformat()
         } for show in self.get_past_shows()],
         "upcoming_shows": [{
             "artist_id": show.artist.id,
             "artist_name": show.artist.name,
             "artist_image_link": show.artist.image_link,
-            "start_time": show.start_time.astimezone(timezone.utc).isoformat()
+            "start_time": show.start_time.isoformat()
         } for show in self.get_upcoming_shows()],
         "past_shows_count": self.get_past_shows_count(),
         "upcoming_shows_count": self.get_upcoming_shows_count()
@@ -248,13 +248,13 @@ class Artist(SearchableMixin, db.Model):
             "venue_id": show.venue.id,
             "venue_name": show.venue.name,
             "venue_image_link": show.venue.image_link,
-            "start_time": show.start_time.astimezone(timezone.utc).isoformat()
+            "start_time": show.start_time.isoformat()
         } for show in self.get_past_shows()],
         "upcoming_shows": [{
             "venue_id": show.venue.id,
             "venue_name": show.venue.name,
             "venue_image_link": show.venue.image_link,
-            "start_time": show.start_time.astimezone(timezone.utc).isoformat()
+            "start_time": show.start_time.isoformat()
         } for show in self.get_upcoming_shows()],
         "past_shows_count": self.get_past_shows_count(),
         "upcoming_shows_count": self.get_upcoming_shows_count(),
