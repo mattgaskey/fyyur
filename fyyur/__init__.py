@@ -36,7 +36,7 @@ def create_app(config_class=Config):
   from fyyur.venue import bp as venue_bp
   app.register_blueprint(venue_bp)
 
-  if not app.debug:
+  if app.debug:
     logging.basicConfig(level=logging.INFO)
     app.logger = logging.getLogger(__name__)
     file_handler = FileHandler('error.log')
