@@ -11,7 +11,7 @@ echo "Database started"
 # Run database migrations
 echo "Running database migrations..."
 
-if poetry run flask db upgrade; then
+if flask db upgrade; then
   echo "Database migrations completed successfully"
 else
   echo "Database migrations failed"
@@ -20,13 +20,13 @@ fi
 
 # Debug: Check the Python environment and installed packages
 echo "Checking Python environment..."
-poetry run python -c "import sys; print(sys.executable)"
-poetry run python -m pip list
+python -c "import sys; print(sys.executable)"
+python -m pip list
 
 # Seed the database using the virtual environment's Python interpreter
 echo "Seeding the database..."
-/app/.venv/bin/python seed.py
+python seed.py
 
 # Start your Flask application
 echo "Starting Flask application..."
-exec poetry run flask run --host=0.0.0.0 --reload
+exec flask run --host=0.0.0.0 --reload
